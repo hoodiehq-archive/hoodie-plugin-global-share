@@ -9,24 +9,20 @@ Hoodie.extend(function (hoodie) {
 
   hoodie.store.on('add', function (doc) {
     if (doc.$public) {
-      hoodie.global.add(doc.type, doc).done(function (newObject) {
-        console.log('added: ', newObject);
-      });
+      return hoodie.global.add(doc.type, doc);
     }
   });
 
   hoodie.store.on('update', function (type, id, doc) {
     if (doc.$public) {
-      hoodie.global.update(type, id, doc).done(function (updatedObject) {
-        console.log('updated: ', updatedObject);
-      });
+      return hoodie.global.update(type, id, doc);
     }
   });
 
   hoodie.store.on('remove', function (doc) {
-    hoodie.global.remove(doc.type, doc._id).done(function (removedObject) {
-        console.log('removed: ', removedObject);
-    });
+    if (doc.$public) {
+      return hoodie.global.remove(doc.type, doc._id);
+    }
   });
 
   return hoodie;
