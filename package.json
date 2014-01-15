@@ -1,0 +1,11 @@
+{
+  "name": "hoodie-plugin-global-share",
+  "version": "0.0.1",
+  "main": "index.js",
+  "description": "Hoodie.js Global Share Plugin",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
