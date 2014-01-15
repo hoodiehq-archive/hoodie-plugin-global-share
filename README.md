@@ -1,3 +1,3 @@
-# hoodie-plugin-global.share
+# hoodie-plugin-global-share
 
 don't use me just yet.
