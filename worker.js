@@ -1,7 +1,7 @@
 var async = require('async');
 
 
-module.exports = function (hoodie, cb) {
+module.exports = function (hoodie, callback) {
 
     'use strict';
 
