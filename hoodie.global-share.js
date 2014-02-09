@@ -1,4 +1,4 @@
-/*global Hoodie:true*/
+/*global Hoodie, $*/
 
 Hoodie.extend(function (hoodie) {
 
@@ -7,24 +7,48 @@ Hoodie.extend(function (hoodie) {
   hoodie.global = hoodie.open('hoodie-plugin-global-share');
   hoodie.global.connect();
 
-  hoodie.store.on('add', function (doc) {
-    if (doc.$public) {
-      return hoodie.global.add(doc.type, doc);
-    }
-  });
 
-  hoodie.store.on('update', function (type, id, doc) {
-    if (doc.$public) {
-      return hoodie.global.update(type, id, doc);
-    }
-  });
+  // hoodie.store decorations
+    // --------------------------
 
-  hoodie.store.on('remove', function (doc) {
-    if (doc.$public) {
-      return hoodie.global.remove(doc.type, doc._id);
-    }
-  });
+    // hoodie.store decorations add custom methods to promises returned
+    // by hoodie.store methods like find, add or update. All methods return
+    // methods again that will be executed in the scope of the promise, but
+    // with access to the current hoodie instance
 
-  return hoodie;
+    // ### publish
+
+    // publish an object. If an array of properties passed, publish only these
+    // attributes and hide the remaining ones. If no properties passed, publish
+    // the entire object.
+    //
+    function storePublish() {
+      return togglePublish(this, true);
+    }
+
+
+    // ### unpublish
+
+    //
+    function storeUnpublish() {
+      return togglePublish(this, false);
+    }
+
+    // helpers
+
+    function togglePublish (promise, isPublic) {
+      return promise.then(function(objects) {
+        if (!$.isArray(objects)) {
+          objects = [objects];
+        }
+
+        return hoodie.store.updateAll(objects, {$public: isPublic});
+      });
+    }
+
+    hoodie.store.decoratePromises({
+      publish: storePublish,
+      unpublish: storeUnpublish
+    });
 
 });
