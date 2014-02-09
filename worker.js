@@ -11,26 +11,34 @@ module.exports = function (hoodie, callback) {
     var dbname = plugin_name;
 
     var permission_check = function (newDoc, oldDoc, userCtx) {
+        function hasRole(x) {
+            for (var i = 0; i < userCtx.roles.length; i++) {
+                if (userCtx.roles[i] === x) {
+                    return true;
+                }
+            }
+            return false;
+        }
         if (!userCtx.name) {
             throw {unauthorized: 'You must have an authenticated session'};
         }
         if (oldDoc) {
             if (newDoc._deleted) {
                 // delete
-                if (userCtx.name !== oldDoc.createdBy) {
+                if (!hasRole(oldDoc.createdBy)) {
                     throw {unauthorized: 'Only creator can delete this'};
                 }
             }
             else {
                 // edit
-                if (userCtx.name !== oldDoc.createdBy) {
+                if (!hasRole(oldDoc.createdBy)) {
                     throw {unauthorized: 'Only creator can edit this'};
                 }
             }
         }
         else {
             // create
-            if (userCtx.name !== newDoc.createdBy) {
+            if (!hasRole(newDoc.createdBy)) {
                 throw {unauthorized: 'createdBy must match your username'};
             }
         }
@@ -54,7 +62,10 @@ module.exports = function (hoodie, callback) {
             target: dbname,
             filter: 'filter_global-share-public-docs/publicDocs',
             continuous: true,
-            user_ctx: user
+            user_ctx: {
+                name: user.name,
+                roles: user.roles
+            }
         };
         function reportError(err) {
             console.error('Error setting up replication with public share');
