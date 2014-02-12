@@ -31,7 +31,18 @@ Hoodie.extend(function (hoodie) {
 
     //
     function storeUnpublish() {
-      return togglePublish(this, false);
+      return togglePublish(this, false).then(function (objects) {
+        if (!$.isArray(objects)) {
+          objects = [objects];
+        }
+        // only send type and id
+        var targets = [];
+        for (var i = 0; i < objects.length; i++) {
+          var obj = objects[i];
+          targets.push({type: obj.type, id: obj.id});
+        }
+        return hoodie.task.start('globalshareunpublish', {targets: targets});
+      });
     }
 
     // helpers
