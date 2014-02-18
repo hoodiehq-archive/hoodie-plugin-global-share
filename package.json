@@ -1,6 +1,6 @@
 {
   "name": "hoodie-plugin-global-share",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "main": "worker.js",
   "description": "Hoodie.js Global Share Plugin",
   "scripts": {
