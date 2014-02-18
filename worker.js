@@ -61,17 +61,22 @@ module.exports = function (hoodie, callback) {
             }
         };
         var dburl = '/' + encodeURIComponent(user.database);
-        hoodie.request('POST', dburl, {data: filter_ddoc}, callback);
+        hoodie.request('POST', dburl, {data: filter_ddoc}, function (err) {
+            if (err && err.error === 'conflict') {
+                // filter already exists, ignore
+                return callback();
+            }
+            return callback(err);
+        });
     }
 
     // sets up replication from user db to global share db
-    function setupUserToPublic(user) {
+    function setupUserToPublic(user, callback) {
         setupPublicFilter(user, function (err) {
             if (err) {
                 console.error('Error setting up publicDocs filter for user');
                 console.error(user);
-                console.error(err);
-                return;
+                return callback(err);
             }
             var doc = {
                 source: user.database,
@@ -91,35 +96,44 @@ module.exports = function (hoodie, callback) {
                             'for user'
                         );
                         console.error(user);
-                        console.error(err);
-                        return;
+                        return callback(err);
                     }
-                    hoodie.account.update(user.type, user.id, {
-                        globalShareReplicationOutgoing: res.id,
-                        globalShares: true
-                    },
-                    function (err) {
+                    var url = '/_users/' + encodeURIComponent(user._id);
+                    hoodie.request('GET', url, {}, function (err, user) {
                         if (err) {
-                            console.error(
-                                'Error setting globalShareReplicationOutgoing ' +
-                                'property on user doc'
-                            );
-                            console.error(user);
-                            console.error(err);
-                            return;
+                            return callback(err);
                         }
-                        console.log(
-                            'Setup userdb->public replication for ' +
-                            user.database
-                        );
-                    })
+                        // user doc may have been updated since last time
+                        user = _.extend(user, {
+                            globalShareReplicationOutgoing: res.id,
+                            globalShares: true
+                        });
+                        hoodie.request('PUT', url, {data: user},
+                            function (err) {
+                                if (err) {
+                                    console.error(
+                                        'Error setting ' +
+                                        'globalShareReplicationOutgoing ' +
+                                        'property on user doc'
+                                    );
+                                    console.error(user);
+                                    return callback(err);
+                                }
+                                console.log(
+                                    'Setup userdb->public replication for ' +
+                                    user.database
+                                );
+                                return callback();
+                            }
+                        )
+                    });
                 }
             );
         });
     }
 
     // sets up replication from global share db to user db
-    function setupPublicToUser(user) {
+    function setupPublicToUser(user, callback) {
         var doc = {
             source: dbname,
             target: user.database,
@@ -139,38 +153,55 @@ module.exports = function (hoodie, callback) {
                     );
                     console.error(user);
                     console.error(doc);
-                    console.error(err);
-                    return;
+                    return callback(err);
                 }
-                hoodie.account.update(user.type, user.id, {
-                    globalShareReplicationIncoming: res.id,
-                    globalShares: true
-                },
-                function (err) {
+                var url = '/_users/' + encodeURIComponent(user._id);
+                hoodie.request('GET', url, {}, function (err, user) {
                     if (err) {
-                        console.error(
-                            'Error updating globalShareReplicationIncoming ' +
-                            'property on user doc'
-                        );
-                        console.error(user);
-                        console.error(err);
-                        return;
+                        return callback(err);
                     }
-                    console.log(
-                        'Setup public->userdb replication for ' +
-                        user.database
-                    );
-                })
+                    // user doc may have been updated since
+                    user = _.extend(user, {
+                        globalShareReplicationIncoming: res.id,
+                        globalShares: true
+                    });
+                    hoodie.request('PUT', url, {data: user}, function (err) {
+                        if (err) {
+                            console.error(
+                                'Error updating ' +
+                                'globalShareReplicationIncoming ' +
+                                'property on user doc'
+                            );
+                            console.error(user);
+                            return callback(err);
+                        }
+                        console.log(
+                            'Setup public->userdb replication for ' +
+                            user.database
+                        );
+                        return callback();
+                    });
+                });
             }
         );
     }
 
     // when a user doc changes, check if we need to setup replication for it
-    function handleChange(doc) {
+    function handleChange(doc, callback) {
         if (_.contains(doc.roles, 'confirmed') && doc.database) {
             if (!doc.globalShares) {
-                setupUserToPublic(doc);
-                setupPublicToUser(doc);
+                async.series([
+                    async.apply(setupUserToPublic, doc),
+                    async.apply(setupPublicToUser, doc)
+                ],
+                function (err) {
+                    if (err) {
+                        console.error(err);
+                    }
+                    if (callback) {
+                        return callback(err);
+                    }
+                });
             }
         }
     }
@@ -194,7 +225,7 @@ module.exports = function (hoodie, callback) {
                     if (err) {
                         return cb(err);
                     }
-                    handleChange(doc);
+                    handleChange(doc, cb);
                 });
             },
             callback);
