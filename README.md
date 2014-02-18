@@ -3,7 +3,7 @@
 ### Installation:
 
 ```bash
-  hoodie install global-share
+hoodie install global-share
 ```
 
 ### Usage:
@@ -14,7 +14,6 @@ Create a few documents you'd like to make publicly available:
 
 ```js
 var docs = [
-
   {
     name: 'sleep'
   },
@@ -24,7 +23,6 @@ var docs = [
   {
     name: 'sleep some more'
   }
-
 ];
 
 hoodie.store.add('tasks', docs).done(function(newDocs) { /.../ });
