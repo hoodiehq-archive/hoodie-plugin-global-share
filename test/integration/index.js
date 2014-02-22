@@ -1,5 +1,13 @@
 require('expect.js');
 
+//
+// npm link
+// npm link plugin-name
+// start server with custom index.html that loads hoodie.js incl. global-share plugin
+// npm unlink
+// npm unlink plugin-name
+//
+
 var hoodie_server = require('hoodie-server');
 
 var config = {

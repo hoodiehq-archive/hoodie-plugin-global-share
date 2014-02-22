@@ -48,3 +48,8 @@ hoodie.store.findAll('tasks').unpublish();
 hoodie.store.find('tasks', 'taskID12345').unpublish();
 ```
 
+### Testing:
+
+```bash
+grunt
+```
