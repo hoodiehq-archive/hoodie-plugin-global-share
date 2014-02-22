@@ -19,7 +19,8 @@
     "grunt-simple-mocha": "^0.4.0",
     "grunt-contrib-jshint": "^0.6.2",
     "grunt-contrib-watch": "^0.5.1",
-    "grunt-shell": "^0.6.4"
+    "grunt-shell": "^0.6.4",
+    "sinon": "^1.8.2"
   },
   "hoodie": {
     "plugins": []
