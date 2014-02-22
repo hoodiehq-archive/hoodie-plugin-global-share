@@ -13,12 +13,12 @@ module.exports = {
   before: (function () {
 
     before(function (done) {
-      var config = {
+      this.server_config = {
         www_port: 5011,
         admin_port: 5021,
         admin_password: '12345'
       };
-      this.server = hoodie_server.start(config, function () {
+      this.server = hoodie_server.start(this.server_config, function () {
         return done();
       });
 
