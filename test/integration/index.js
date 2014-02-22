@@ -30,9 +30,9 @@ function start_server(callback) {
   });
 }
 
-describe('http api', function () {
+describe('server', function () {
 
-  it('should send index.html on accept: text/html', function (done) {
+  it('should start a hoodie instance', function (done) {
 
     start_server(function () {
       done();
