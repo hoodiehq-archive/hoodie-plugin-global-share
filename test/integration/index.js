@@ -1,6 +1,8 @@
 var expect = require('expect.js');
 var request = require('request');
 
+var shell = require('shelljs');
+
 describe('starts default hoodie server', function () {
 
   describe('should provide the plugins database', function () {
@@ -42,7 +44,7 @@ describe('starts default hoodie server', function () {
       uri: 'http://127.0.0.1:' + this.server_config.www_port + '/',
       method: 'GET'
     }, function (err, resp, body) {
-      expect(body).to.equal('hi\n');
+      expect(body.match('hi')).to.be.ok();
       done();
     });
 
@@ -56,6 +58,24 @@ describe('starts default hoodie server', function () {
       method: 'GET'
     }, function (err, resp, body) {
       expect(body.match('hoodie-plugin-global-share')).to.be.ok();
+      done();
+    });
+
+  });
+
+  it('it should run a casperjs test suite', function (done) {
+
+    var casperOpts = [
+      ' test',
+      'test/casper/index.js',
+      '--HOSTNAME=http://localhost:' + this.server_config.www_port + ''
+    ];
+
+    shell.exec(shell.which('casperjs') + casperOpts.join(' '), {
+      async: true,
+      silent: false
+    }, function (err) {
+      expect(err).to.not.be(1);
       done();
     });
 
