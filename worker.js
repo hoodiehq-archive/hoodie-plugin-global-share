@@ -1,4 +1,3 @@
-/*global hoodie:true */
 var async = require('async');
 var _ = require('lodash');
 
@@ -59,7 +58,7 @@ module.exports = function (hoodie, callback) {
   };
 
   // when a user doc is updated, check if we need to setup replication
-  hoodie.account.on('user:change', exports.handleChange);
+  hoodie.account.on('user:change', exports.handleChange, dbname, hoodie);
 
   // remove docs from global share db
   hoodie.task.on('globalshareunpublish:add', function (db, task) {
@@ -83,9 +82,9 @@ module.exports = function (hoodie, callback) {
       'global-share-per-user-writes',
       permission_check
     ),
-    async.apply(exports.ensureCreatorFilter, dbname),
+    async.apply(exports.ensureCreatorFilter, dbname, hoodie),
     async.apply(hoodie.database(dbname).grantPublicWriteAccess),
-    async.apply(exports.catchUp, dbname)
+    async.apply(exports.catchUp, dbname, hoodie)
   ],
   callback);
 
@@ -94,7 +93,7 @@ module.exports = function (hoodie, callback) {
 
 // adds a filter for public === true on user db so we can do
 // filtered replication to global share db
-exports.setupPublicFilter = function (user, callback) {
+exports.setupPublicFilter = function (user, hoodie, callback) {
   var dburl = '/' + encodeURIComponent(user.database);
   var filter_ddoc = {
     _id: '_design/filter_global-share-public-docs',
@@ -119,7 +118,7 @@ exports.setupPublicFilter = function (user, callback) {
 
 
 // sets up replication from user db to global share db
-exports.setupUserToPublic = function (user, dbname, callback) {
+exports.setupUserToPublic = function (user, dbname, hoodie, callback) {
 
   exports.setupPublicFilter(user, function (err) {
 
@@ -192,7 +191,7 @@ exports.setupUserToPublic = function (user, dbname, callback) {
 
 
 // sets up replication from global share db to user db
-exports.setupPublicToUser = function (user, dbname, callback) {
+exports.setupPublicToUser = function (user, dbname, hoodie, callback) {
   var doc = {
     source: dbname,
     target: user.database,
@@ -256,15 +255,15 @@ exports.setupPublicToUser = function (user, dbname, callback) {
 
 
 // when a user doc changes, check if we need to setup replication for it
-exports.handleChange = function (doc, dbname, callback) {
+exports.handleChange = function (doc, dbname, hoodie, callback) {
 
   if (_.contains(doc.roles, 'confirmed') && doc.database) {
 
     if (!doc.globalShares) {
 
       async.series([
-        async.apply(exports.setupUserToPublic, doc, dbname),
-        async.apply(exports.setupPublicToUser, doc, dbname)
+        async.apply(exports.setupUserToPublic, doc, dbname, hoodie),
+        async.apply(exports.setupPublicToUser, doc, dbname, hoodie)
       ],
       function (err) {
         if (err) {
@@ -282,7 +281,7 @@ exports.handleChange = function (doc, dbname, callback) {
 // scan through all users in _users db and check if we need to
 // setup replication for them - unfortunately, we can't add a design
 // doc to the _users db to create a view for this!
-exports.catchUp = function (dbname, callback) {
+exports.catchUp = function (dbname, hoodie, callback) {
   var url = '/_users/_all_docs';
 
   hoodie.request('GET', url, {}, function (err, body) {
@@ -302,7 +301,7 @@ exports.catchUp = function (dbname, callback) {
         if (err) {
           return cb(err);
         }
-        exports.handleChange(doc, dbname, cb);
+        exports.handleChange(doc, dbname, hoodie, cb);
       });
     },
     callback);
@@ -314,7 +313,7 @@ exports.catchUp = function (dbname, callback) {
 
 // add filter to public share db stop your own docs being
 // replicated back from public share db - avoids conflicts
-exports.ensureCreatorFilter = function (dbname, callback) {
+exports.ensureCreatorFilter = function (dbname, hoodie, callback) {
   var filter_ddoc = {
     _id: '_design/filter_global-share-creator',
     filters: {
