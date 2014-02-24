@@ -83,7 +83,7 @@ module.exports = function (hoodie, callback) {
       'global-share-per-user-writes',
       permission_check
     ),
-    async.appl(exports.ensureCreatorFilter, dbname),
+    async.apply(exports.ensureCreatorFilter, dbname),
     async.apply(hoodie.database(dbname).grantPublicWriteAccess),
     async.apply(exports.catchUp, dbname)
   ],
