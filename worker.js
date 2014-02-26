@@ -5,7 +5,7 @@ var _ = require('lodash');
 module.exports = function (hoodie, callback) {
 
   // when a user doc is updated, check if we need to setup replication
-  hoodie.account.on('user:change', exports.handleChange, exports.dbname, hoodie);
+  hoodie.account.on('user:change', async.apply(exports.handleChange, exports.dbname, hoodie));
 
   // remove docs from global share db
   hoodie.task.on('globalshareunpublish:add', function (db, task) {
@@ -27,7 +27,7 @@ module.exports = function (hoodie, callback) {
     async.apply(exports.dbAdd, hoodie),
     async.apply(hoodie.database(exports.dbname).addPermission,
       'global-share-per-user-writes',
-      exports.permission_check
+      exports.validate_doc_update
     ),
     async.apply(exports.ensureCreatorFilter, exports.dbname, hoodie),
     async.apply(hoodie.database(exports.dbname).grantPublicWriteAccess),
@@ -55,8 +55,8 @@ exports.dbAdd = function (hoodie, callback) {
 
 };
 
-
-exports.permission_check = function (newDoc, oldDoc, userCtx) {
+// couchdb view string
+exports.validate_doc_update = function (newDoc, oldDoc, userCtx) {
 
   function hasRole(x) {
     for (var i = 0; i < userCtx.roles.length; i++) {
@@ -113,12 +113,13 @@ exports.permission_check = function (newDoc, oldDoc, userCtx) {
 // filtered replication to global share db
 exports.setupPublicFilter = function (user, hoodie, callback) {
   var dburl = '/' + encodeURIComponent(user.database);
+
   var filter_ddoc = {
     _id: '_design/filter_global-share-public-docs',
     filters: {
       publicDocs: (function (doc) {
         return !!(doc.$public);
-      }()).toString()
+      }).toString()
     }
   };
 
@@ -138,7 +139,7 @@ exports.setupPublicFilter = function (user, hoodie, callback) {
 // sets up replication from user db to global share db
 exports.setupUserToPublic = function (user, dbname, hoodie, callback) {
 
-  exports.setupPublicFilter(user, function (err) {
+  exports.setupPublicFilter(user, hoodie, function (err) {
 
     if (err) {
       console.error('Error setting up publicDocs filter for user');
@@ -343,7 +344,7 @@ exports.ensureCreatorFilter = function (dbname, hoodie, callback) {
             return false;
           }
         };
-      }()).toString()
+      }).toString()
     }
   };
 
