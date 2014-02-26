@@ -44,7 +44,7 @@ exports.dbname = function () {
 
 exports.dbAdd = function (hoodie, callback) {
 
-  hoodie.database.add(exports.dbname, function (err) {
+  hoodie.database.add(exports.dbname(), function (err) {
 
     if (err && err.error === 'file_exists') {
       return callback();
