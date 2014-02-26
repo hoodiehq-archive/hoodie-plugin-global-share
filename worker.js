@@ -5,12 +5,12 @@ var _ = require('lodash');
 module.exports = function (hoodie, callback) {
 
   // when a user doc is updated, check if we need to setup replication
-  hoodie.account.on('user:change', exports.handleChange, exports.dbname(), hoodie);
+  hoodie.account.on('user:change', exports.handleChange, exports.dbname, hoodie);
 
   // remove docs from global share db
   hoodie.task.on('globalshareunpublish:add', function (db, task) {
     async.forEachSeries(task.targets || [], function (target, cb) {
-      hoodie.database(exports.dbname()).remove(target.type, target.id, cb);
+      hoodie.database(exports.dbname).remove(target.type, target.id, cb);
     },
     function (err) {
       if (err) {
@@ -25,26 +25,24 @@ module.exports = function (hoodie, callback) {
   // initialize the plugin
   async.series([
     async.apply(exports.dbAdd, hoodie),
-    async.apply(hoodie.database(exports.dbname()).addPermission,
+    async.apply(hoodie.database(exports.dbname).addPermission,
       'global-share-per-user-writes',
       exports.permission_check()
     ),
-    async.apply(exports.ensureCreatorFilter, exports.dbname(), hoodie),
-    async.apply(hoodie.database(exports.dbname()).grantPublicWriteAccess),
-    async.apply(exports.catchUp, exports.dbname(), hoodie)
+    async.apply(exports.ensureCreatorFilter, exports.dbname, hoodie),
+    async.apply(hoodie.database(exports.dbname).grantPublicWriteAccess),
+    async.apply(exports.catchUp, exports.dbname, hoodie)
   ],
   callback);
 
 };
 
 
-exports.dbname = function () {
-  return 'hoodie-plugin-global-share';
-};
+exports.dbname = 'hoodie-plugin-global-share';
 
 exports.dbAdd = function (hoodie, callback) {
 
-  hoodie.database.add(exports.dbname(), function (err) {
+  hoodie.database.add(exports.dbname, function (err) {
 
     if (err && err.error === 'file_exists') {
       return callback(null);
@@ -54,7 +52,7 @@ exports.dbAdd = function (hoodie, callback) {
       return callback(err, null);
     }
 
-    return exports.dbname();
+    return exports.dbname;
   });
 
 };
