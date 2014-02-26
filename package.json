@@ -8,22 +8,22 @@
   },
   "author": "",
   "dependencies": {
-    "async": "^0.2.10",
-    "lodash": "^2.4.1",
-    "hoodie-server": "^0.9.19",
-    "hoodie": "^0.6.5"
+    "async": "0.2.10",
+    "lodash": "2.4.1",
+    "hoodie-server": "0.9.19",
+    "hoodie": "0.6.5"
   },
   "devDependencies": {
-    "mocha": "*",
-    "grunt": "^0.4.1",
-    "expect.js": "^0.2.0",
-    "grunt-simple-mocha": "^0.4.0",
-    "grunt-contrib-jshint": "^0.6.2",
-    "grunt-contrib-watch": "^0.5.1",
-    "grunt-shell": "^0.6.4",
-    "sinon": "^1.8.2",
-    "request": "^2.34.0",
-    "shelljs": "^0.2.6"
+    "grunt": "0.4.1",
+    "expect.js": "0.2.0",
+    "grunt-simple-mocha": "0.4.0",
+    "grunt-contrib-jshint": "0.6.2",
+    "grunt-contrib-watch": "0.5.1",
+    "grunt-shell": "0.6.4",
+    "sinon": "1.8.2",
+    "request": "2.34.0",
+    "shelljs": "0.2.6",
+    "mocha": "1.17.1"
   },
   "hoodie": {
     "plugins": []
