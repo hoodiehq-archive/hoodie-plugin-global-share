@@ -40,19 +40,17 @@ module.exports = function (hoodie, callback) {
 
 exports.dbname = 'hoodie-plugin-global-share';
 
+
 exports.dbAdd = function (hoodie, callback) {
 
   hoodie.database.add(exports.dbname, function (err) {
 
-    if (err && err.error === 'file_exists') {
-      return callback(null);
-    }
-
     if (err) {
-      return callback(err, null);
+      return callback(err);
     }
 
-    return exports.dbname;
+    return callback();
+
   });
 
 };
@@ -163,10 +161,7 @@ exports.setupUserToPublic = function (user, dbname, hoodie, callback) {
       data: doc
     }, function (err, res) {
       if (err) {
-        console.error(
-          'Error setting up replication to public db ' +
-          'for user'
-        );
+        console.error('Error setting up replication to public db for user');
         console.error(user);
         return callback(err);
       }
@@ -212,6 +207,7 @@ exports.setupUserToPublic = function (user, dbname, hoodie, callback) {
 
 // sets up replication from global share db to user db
 exports.setupPublicToUser = function (user, dbname, hoodie, callback) {
+
   var doc = {
     source: dbname,
     target: user.database,
@@ -294,7 +290,9 @@ exports.handleChange = function (doc, dbname, hoodie, callback) {
         }
       });
     }
+
   }
+
 };
 
 
