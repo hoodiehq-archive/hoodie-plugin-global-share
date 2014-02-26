@@ -4,66 +4,13 @@ var _ = require('lodash');
 
 module.exports = function (hoodie, callback) {
 
-  var plugin_name = 'hoodie-plugin-global-share';
-  var dbname = plugin_name;
-
-  var permission_check = function (newDoc, oldDoc, userCtx) {
-    function hasRole(x) {
-      for (var i = 0; i < userCtx.roles.length; i++) {
-        if (userCtx.roles[i] === x) {
-          return true;
-        }
-      }
-      return false;
-    }
-
-    if (hasRole('_admin')) {
-      // let admins remove docs etc, otherwise the unpublish
-      // task would fail
-      return;
-    }
-
-    if (!userCtx.name) {
-      throw {
-        unauthorized: 'You must have an authenticated session'
-      };
-    }
-
-    if (oldDoc) {
-
-      if (newDoc._deleted) {
-        // delete
-        if (!hasRole(oldDoc.createdBy)) {
-          throw {
-            unauthorized: 'Only creator can delete this'
-          };
-        }
-
-      } else {
-        // edit
-        if (!hasRole(oldDoc.createdBy)) {
-          throw {
-            unauthorized: 'Only creator can edit this'
-          };
-        }
-      }
-    } else {
-      // create
-      if (!hasRole(newDoc.createdBy)) {
-        throw {
-          unauthorized: 'createdBy must match your username'
-        };
-      }
-    }
-  };
-
   // when a user doc is updated, check if we need to setup replication
-  hoodie.account.on('user:change', exports.handleChange, dbname, hoodie);
+  hoodie.account.on('user:change', exports.handleChange, exports.dbname, hoodie);
 
   // remove docs from global share db
   hoodie.task.on('globalshareunpublish:add', function (db, task) {
     async.forEachSeries(task.targets || [], function (target, cb) {
-      hoodie.database(dbname).remove(target.type, target.id, cb);
+      hoodie.database(exports.dbname).remove(target.type, target.id, cb);
     },
     function (err) {
       if (err) {
@@ -77,17 +24,89 @@ module.exports = function (hoodie, callback) {
 
   // initialize the plugin
   async.series([
-    async.apply(hoodie.database.add, dbname),
-    async.apply(hoodie.database(dbname).addPermission,
+    async.apply(exports.dbAdd, hoodie),
+    async.apply(hoodie.database(exports.dbname).addPermission,
       'global-share-per-user-writes',
-      permission_check
+      exports.permission_check
     ),
-    async.apply(exports.ensureCreatorFilter, dbname, hoodie),
-    async.apply(hoodie.database(dbname).grantPublicWriteAccess),
-    async.apply(exports.catchUp, dbname, hoodie)
+    async.apply(exports.ensureCreatorFilter, exports.dbname, hoodie),
+    async.apply(hoodie.database(exports.dbname).grantPublicWriteAccess),
+    async.apply(exports.catchUp, exports.dbname, hoodie)
   ],
   callback);
 
+};
+
+
+exports.dbname = function () {
+  return 'hoodie-plugin-global-share';
+};
+
+exports.dbAdd = function (hoodie, callback) {
+
+  hoodie.database.add(exports.dbname, function (err) {
+
+    if (err && err.error === 'file_exists') {
+      return callback();
+    }
+
+    if (err) {
+      return callback(err);
+    }
+  });
+
+};
+
+
+exports.permission_check = function (newDoc, oldDoc, userCtx) {
+
+  function hasRole(x) {
+    for (var i = 0; i < userCtx.roles.length; i++) {
+      if (userCtx.roles[i] === x) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  if (hasRole('_admin')) {
+    // let admins remove docs etc, otherwise the unpublish
+    // task would fail
+    return;
+  }
+
+  if (!userCtx.name) {
+    throw {
+      unauthorized: 'You must have an authenticated session'
+    };
+  }
+
+  if (oldDoc) {
+
+    if (newDoc._deleted) {
+      // delete
+      if (!hasRole(oldDoc.createdBy)) {
+        throw {
+          unauthorized: 'Only creator can delete this'
+        };
+      }
+
+    } else {
+      // edit
+      if (!hasRole(oldDoc.createdBy)) {
+        throw {
+          unauthorized: 'Only creator can edit this'
+        };
+      }
+    }
+  } else {
+    // create
+    if (!hasRole(newDoc.createdBy)) {
+      throw {
+        unauthorized: 'createdBy must match your username'
+      };
+    }
+  }
 };
 
 
