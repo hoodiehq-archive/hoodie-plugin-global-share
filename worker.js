@@ -27,7 +27,7 @@ module.exports = function (hoodie, callback) {
     async.apply(exports.dbAdd, hoodie),
     async.apply(hoodie.database(exports.dbname).addPermission,
       'global-share-per-user-writes',
-      exports.permission_check()
+      exports.permission_check
     ),
     async.apply(exports.ensureCreatorFilter, exports.dbname, hoodie),
     async.apply(hoodie.database(exports.dbname).grantPublicWriteAccess),
