@@ -5,7 +5,7 @@ var _ = require('lodash');
 module.exports = function (hoodie, callback) {
 
   // when a user doc is updated, check if we need to setup replication
-  hoodie.account.on('user:change', function(doc) {
+  hoodie.account.on('user:change', function (doc) {
     exports.handleChange(doc, exports.dbname, hoodie);
   });
 
@@ -169,7 +169,7 @@ exports.setupUserToPublic = function (user, dbname, hoodie, callback) {
         return callback(err);
       }
 
-      var url = getUserDocURL(user)
+      var url = getUserDocURL(user);
 
       hoodie.request('GET', url, {}, function (err, user) {
         if (err) {
@@ -235,7 +235,7 @@ exports.setupPublicToUser = function (user, dbname, hoodie, callback) {
       return callback(err);
     }
 
-    var url = getUserDocURL(user)
+    var url = getUserDocURL(user);
 
     hoodie.request('GET', url, {}, function (err, user) {
       if (err) {
@@ -384,10 +384,10 @@ function getUserDocURL(user) {
  * Convert a CouchDB _users document back into the Hoodie format
  */
 
-function parseDoc (doc) {
-    doc.name = doc._id.replace(/^org\.couchdb\.user:/, '');
-    doc.id = doc.name.split('/').slice(1).join('/');
-    doc.type = doc.name.split('/')[0];
-    delete doc._id;
-    return doc;
-};
+function parseDoc(doc) {
+  doc.name = doc._id.replace(/^org\.couchdb\.user:/, '');
+  doc.id = doc.name.split('/').slice(1).join('/');
+  doc.type = doc.name.split('/')[0];
+  delete doc._id;
+  return doc;
+}
