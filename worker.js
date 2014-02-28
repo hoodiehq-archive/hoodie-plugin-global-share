@@ -167,7 +167,7 @@ exports.setupUserToPublic = function (user, dbname, hoodie, callback) {
         return callback(err);
       }
 
-      var url = '/_users/' + encodeURIComponent(user._id);
+      var url = getUserDocURL(user)
 
       hoodie.request('GET', url, {}, function (err, user) {
         if (err) {
@@ -233,7 +233,7 @@ exports.setupPublicToUser = function (user, dbname, hoodie, callback) {
       return callback(err);
     }
 
-    var url = '/_users/' + encodeURIComponent(user._id);
+    var url = getUserDocURL(user)
 
     hoodie.request('GET', url, {}, function (err, user) {
       if (err) {
@@ -320,6 +320,8 @@ exports.catchUp = function (dbname, hoodie, callback) {
         if (err) {
           return cb(err);
         }
+        // pretend this came via a users doc update
+        doc = parseDoc(doc);
         exports.handleChange(doc, dbname, hoodie, cb);
       });
     },
@@ -361,3 +363,21 @@ exports.ensureCreatorFilter = function (dbname, hoodie, callback) {
 
 };
 
+function getUserDocURL(user) {
+  return '/_users/org.couchdb.user:user' + encodeURIComponent('/' + user.id);
+}
+
+
+// stolen from hoodie-plugins-api / accounts.js — We should make this accessible to
+// plugins
+/**
+ * Convert a CouchDB _users document back into the Hoodie format
+ */
+
+function parseDoc (doc) {
+    doc.name = doc._id.replace(/^org\.couchdb\.user:/, '');
+    doc.id = doc.name.split('/').slice(1).join('/');
+    doc.type = doc.name.split('/')[0];
+    delete doc._id;
+    return doc;
+};
