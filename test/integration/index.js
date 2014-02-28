@@ -53,6 +53,8 @@ describe('starts default hoodie server', function () {
 
   it('should serve hoodie.js containing the FE part of this plugin', function (done) {
 
+    this.timeout(5000);
+
     request.get({
       uri: 'http://127.0.0.1:' + this.server_config.www_port + '/_api/_files/hoodie.js',
       method: 'GET'
@@ -64,6 +66,8 @@ describe('starts default hoodie server', function () {
   });
 
   it('it should run a casperjs test suite', function (done) {
+
+    this.timeout(5000);
 
     var casperOpts = [
       ' test',
