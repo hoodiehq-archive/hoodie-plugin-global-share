@@ -292,8 +292,12 @@ exports.handleChange = function (doc, dbname, hoodie, callback) {
           return callback(err);
         }
       });
+    } else {
+      return callback();
     }
 
+  } else {
+    return callback();
   }
 
 };
