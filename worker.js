@@ -5,7 +5,9 @@ var _ = require('lodash');
 module.exports = function (hoodie, callback) {
 
   // when a user doc is updated, check if we need to setup replication
-  hoodie.account.on('user:change', async.apply(exports.handleChange, exports.dbname, hoodie));
+  hoodie.account.on('user:change', function(doc) {
+    exports.handleChange(doc, exports.dbname, hoodie);
+  });
 
   // remove docs from global share db
   hoodie.task.on('globalshareunpublish:add', function (db, task) {
