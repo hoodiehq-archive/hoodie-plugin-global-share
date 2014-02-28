@@ -293,11 +293,15 @@ exports.handleChange = function (doc, dbname, hoodie, callback) {
         }
       });
     } else {
-      return callback();
+      if (callback) {
+        return callback();
+      }
     }
 
   } else {
-    return callback();
+    if (callback) {
+      return callback();
+    }
   }
 
 };
