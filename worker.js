@@ -5,7 +5,9 @@ var _ = require('lodash');
 module.exports = function (hoodie, callback) {
 
   // when a user doc is updated, check if we need to setup replication
-  hoodie.account.on('user:change', async.apply(exports.handleChange, exports.dbname, hoodie));
+  hoodie.account.on('user:change', function(doc) {
+    exports.handleChange(doc, exports.dbname, hoodie);
+  });
 
   // remove docs from global share db
   hoodie.task.on('globalshareunpublish:add', function (db, task) {
@@ -167,7 +169,7 @@ exports.setupUserToPublic = function (user, dbname, hoodie, callback) {
         return callback(err);
       }
 
-      var url = '/_users/' + encodeURIComponent(user._id);
+      var url = getUserDocURL(user)
 
       hoodie.request('GET', url, {}, function (err, user) {
         if (err) {
@@ -233,7 +235,7 @@ exports.setupPublicToUser = function (user, dbname, hoodie, callback) {
       return callback(err);
     }
 
-    var url = '/_users/' + encodeURIComponent(user._id);
+    var url = getUserDocURL(user)
 
     hoodie.request('GET', url, {}, function (err, user) {
       if (err) {
@@ -290,8 +292,12 @@ exports.handleChange = function (doc, dbname, hoodie, callback) {
           return callback(err);
         }
       });
+    } else {
+      return callback();
     }
 
+  } else {
+    return callback();
   }
 
 };
@@ -320,6 +326,8 @@ exports.catchUp = function (dbname, hoodie, callback) {
         if (err) {
           return cb(err);
         }
+        // pretend this came via a users doc update
+        doc = parseDoc(doc);
         exports.handleChange(doc, dbname, hoodie, cb);
       });
     },
@@ -361,3 +369,21 @@ exports.ensureCreatorFilter = function (dbname, hoodie, callback) {
 
 };
 
+function getUserDocURL(user) {
+  return '/_users/org.couchdb.user:user' + encodeURIComponent('/' + user.id);
+}
+
+
+// stolen from hoodie-plugins-api / accounts.js — We should make this accessible to
+// plugins
+/**
+ * Convert a CouchDB _users document back into the Hoodie format
+ */
+
+function parseDoc (doc) {
+    doc.name = doc._id.replace(/^org\.couchdb\.user:/, '');
+    doc.id = doc.name.split('/').slice(1).join('/');
+    doc.type = doc.name.split('/')[0];
+    delete doc._id;
+    return doc;
+};
