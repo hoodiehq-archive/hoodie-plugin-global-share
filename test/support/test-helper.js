@@ -15,6 +15,7 @@ module.exports = {
   before: (function () {
 
     before(function (done) {
+      this.timeout(5000);
       this.server_config = {
         www_port: 5011,
         admin_port: 5021,
@@ -32,6 +33,7 @@ module.exports = {
   beforeEach: (function () {
 
     beforeEach(function () {
+      this.timeout(5000);
       this.sandbox = sinon.sandbox.create();
     });
 
