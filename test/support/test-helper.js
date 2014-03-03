@@ -21,7 +21,8 @@ module.exports = {
         admin_password: '12345',
         www_root: path.resolve('test/support/www')
       };
-      this.server = hoodie_server.start(this.server_config, function () {
+
+      hoodie_server.start(this.server_config, function () {
         return done();
       });
 
