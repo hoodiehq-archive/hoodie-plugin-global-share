@@ -59,7 +59,7 @@ describe('starts default hoodie server', function () {
       uri: 'http://127.0.0.1:' + this.server_config.www_port + '/_api/_files/hoodie.js',
       method: 'GET'
     }, function (err, resp, body) {
-      expect(body.match('hoodie-plugin-global-share')).to.be.ok();
+      expect(body).to.match(/hoodie-plugin-global-share/);
       done();
     });
 
