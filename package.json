@@ -4,7 +4,7 @@
   "main": "worker.js",
   "description": "Hoodie.js Global Share Plugin",
   "scripts": {
-    "test": "grunt --verbose"
+    "test": "grunt test"
   },
   "author": "",
   "dependencies": {
@@ -23,9 +23,17 @@
     "sinon": "1.8.2",
     "request": "2.34.0",
     "shelljs": "0.2.6",
-    "mocha": "1.17.1"
+    "mocha": "1.17.1",
+    "grunt-hoodie": "^0.3.0",
+    "grunt-continue": "0.0.1",
+    "grunt-env": "^0.4.1",
+    "grunt-mocha-browser": "0.0.4",
+    "chai": "^1.9.1",
+    "hoodie-plugin-users": "^0.1.0"
   },
   "hoodie": {
-    "plugins": []
+    "plugins": [
+      "hoodie-plugin-users"
+    ]
   }
 }

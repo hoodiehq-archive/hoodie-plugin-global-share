@@ -1,22 +1,14 @@
 module.exports = function (grunt) {
 
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-simple-mocha');
-  grunt.loadNpmTasks('grunt-shell');
-
   // Project configuration.
   grunt.initConfig({
 
-    watch: {
-      files: ['<%= jshint.files %>'],
-      tasks: 'jshint'
-    },
+    pkg: grunt.file.readJSON('package.json'),
 
     jshint: {
       files: [
         'Gruntfile.js',
-        'hoodie.global-share.js',
+        'hoodie.template.js',
         'worker.js'
       ],
       options: {
@@ -26,38 +18,94 @@ module.exports = function (grunt) {
 
     simplemocha: {
       options: {
-        reporter: 'spec',
-        ignoreLeaks: true
+        ui: 'tdd'
       },
-      full: { src: ['test/runner.js'] }
+      unit: {
+        src: ['test/unit/*.js']
+      }
+    },
+
+    mocha_browser: {
+      all: {options: {urls: ['http://localhost:<%= connect.options.port %>']}}
     },
 
     shell: {
+      removeData: {
+        command: 'rm -rf ' + require('path').resolve(__dirname, 'data')
+      },
       npmLink: {
-        command: 'npm link && npm link hoodie-plugin-global-share'
+        command: 'npm link && npm link hoodie-plugin-template'
       },
       npmUnlink: {
-        command: 'npm unlink && npm unlink hoodie-plugin-global-share'
+        command: 'npm unlink && npm unlink hoodie-plugin-template'
       },
       installPlugin: {
-        command: 'hoodie install global-share'
+        command: 'hoodie install template'
       },
       removePlugin: {
-        command: 'hoodie uninstall global-share'
+        command: 'hoodie uninstall template'
+      }
+    },
+
+    hoodie: {
+      start: {
+        options: {
+          www: 'test/browser',
+          callback: function (config) {
+            grunt.config.set('connect.options.port', config.stack.www.port);
+          }
+        }
+      }
+    },
+
+    env: {
+      test: {
+        HOODIE_SETUP_PASSWORD: 'testing'
+      }
+    },
+
+    watch: {
+      jshint: {
+        files: ['<%= jshint.files %>'],
+        tasks: 'jshint'
+      },
+      unittest: {
+        files: 'worker.js',
+        tasks: 'test:unit'
       }
     }
 
   });
 
-  // Default task.
-  grunt.registerTask('default', [
-    'jshint',
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-mocha-browser');
+  grunt.loadNpmTasks('grunt-simple-mocha');
+  grunt.loadNpmTasks('grunt-continue');
+  grunt.loadNpmTasks('grunt-hoodie');
+  grunt.loadNpmTasks('grunt-shell');
+  grunt.loadNpmTasks('grunt-env');
+
+  grunt.registerTask('test:unit', ['simplemocha:unit']);
+  grunt.registerTask('test:browser', [
+    'env:test',
+    'shell:removeData',
     'shell:npmLink',
     'shell:installPlugin',
-    'simplemocha:full',
+    'hoodie',
+    'continueOn',
+    'mocha_browser:all',
+    'continueOff',
+    'hoodie_stop',
     'shell:npmUnlink',
     'shell:removePlugin'
   ]);
 
-};
+  grunt.registerTask('default', []);
+  grunt.registerTask('test', [
+    'jshint',
+    'test:unit',
+    'test:browser'
+  ]);
 
+};
