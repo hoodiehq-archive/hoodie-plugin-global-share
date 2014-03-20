@@ -8,7 +8,7 @@ module.exports = function (grunt) {
     jshint: {
       files: [
         'Gruntfile.js',
-        'hoodie.template.js',
+        'hoodie.global-share.js',
         'worker.js'
       ],
       options: {
@@ -34,16 +34,16 @@ module.exports = function (grunt) {
         command: 'rm -rf ' + require('path').resolve(__dirname, 'data')
       },
       npmLink: {
-        command: 'npm link && npm link hoodie-plugin-template'
+        command: 'npm link && npm link hoodie-plugin-global-share'
       },
       npmUnlink: {
-        command: 'npm unlink && npm unlink hoodie-plugin-template'
+        command: 'npm unlink && npm unlink hoodie-plugin-global-share'
       },
       installPlugin: {
-        command: 'hoodie install template'
+        command: 'hoodie install global-share'
       },
       removePlugin: {
-        command: 'hoodie uninstall template'
+        command: 'hoodie uninstall global-share'
       }
     },
 
