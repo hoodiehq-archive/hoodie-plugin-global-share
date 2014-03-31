@@ -208,83 +208,13 @@ exports.setupUserToPublic = function (user, dbname, hoodie, callback) {
 };
 
 
-// sets up replication from global share db to user db
-exports.setupPublicToUser = function (user, dbname, hoodie, callback) {
-
-  var doc = {
-    source: dbname,
-    target: user.database,
-    filter: 'filter_global-share-creator/excludeCreator',
-    query_params: {
-      name: user.id
-    },
-    continuous: true,
-    user_ctx: {
-      name: user.name,
-      roles: user.roles
-    }
-  };
-
-  hoodie.request('POST', '/_replicator', {
-    data: doc
-  }, function (err, res) {
-    if (err) {
-      console.error('Error setting up replication from public to user share');
-      console.error(user);
-      console.error(doc);
-      return callback(err);
-    }
-
-    var url = getUserDocURL(user);
-
-    hoodie.request('GET', url, {}, function (err, user) {
-      if (err) {
-        return callback(err);
-      }
-      // user doc may have been updated since
-      user = _.extend(user, {
-        globalShareReplicationIncoming: res.id,
-        globalShares: true
-      });
-
-      hoodie.request('PUT', url, {
-        data: user
-      }, function (err) {
-        if (err) {
-          console.error(
-            'Error updating ' +
-            'globalShareReplicationIncoming ' +
-            'property on user doc'
-          );
-          console.error(user);
-          return callback(err);
-        }
-        console.log(
-          'Setup public->userdb replication for ' +
-          user.database
-        );
-        return callback();
-      });
-
-    });
-
-  });
-
-};
-
-
 // when a user doc changes, check if we need to setup replication for it
 exports.handleChange = function (doc, dbname, hoodie, callback) {
 
   if (_.contains(doc.roles, 'confirmed') && doc.database) {
 
     if (!doc.globalShares) {
-
-      async.series([
-        async.apply(exports.setupUserToPublic, doc, dbname, hoodie),
-        async.apply(exports.setupPublicToUser, doc, dbname, hoodie)
-      ],
-      function (err) {
+      exports.setupUserToPublic(doc, dbname, hoodie, function (err) {
         if (err) {
           console.error(err);
         }
