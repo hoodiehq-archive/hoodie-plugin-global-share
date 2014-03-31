@@ -25,7 +25,7 @@ var docs = [
   }
 ];
 
-hoodie.store.add('tasks', docs).done(function(newDocs) { /.../ });
+hoodie.store.add('tasks', docs).done(function(newDocs) { ... });
 ```
 
 Make all 'tasks' publicly available:
@@ -46,6 +46,13 @@ Same goes for unpublishing:
 hoodie.store.findAll('tasks').unpublish();
 
 hoodie.store.find('tasks', 'taskID12345').unpublish();
+```
+
+You can then read these documents from the `hoodie.global` store, logged in
+as any user (or not logged in at all).
+
+```js
+hoodie.global.find('tasks').done(function(publicTasks) { ... });
 ```
 
 ### Testing:
