@@ -73,6 +73,22 @@ hoodie.global.on('task:change', handleChangedTask)
 hoodie.global.on('task:123:remove', handleTask123Removed)
 ```
 
+## How it works internally
+
+The [plugin's worker](https://github.com/hoodiehq/hoodie-plugin-global-share/blob/master/worker.js)
+creates a new database `hoodie-plugin-global-share` that all objects from all
+user databases that are marked as public are replicated to. 
+
+Calling `.publish()` on a store method in the frontend adds a `$public: true`
+flag to the respecitve objects, that is used by the filtered replications from
+user databases → `hoodie-plugin-global-share` database.
+
+Calling `.unpublish()` uses the `hoodie.task` API internally to start `globalshareunpublish`
+task with object types/IDs to be unpublished.  The task gets picked up by the worker
+which then removes all objects with the passed types/IDs from the `hoodie-plugin-global-share` 
+database.
+
+
 ## Contributing
 
 We love contributors <3 If you need any help getting started, please
