@@ -2,6 +2,8 @@
 
 # Hoodie Global Share Plugin
 
+If you want every user to be able to edit each user's entries in your application, this plugin is the right one for you. If you just want to publish content with read-only rights for users, you should choose [public shares](https://github.com/hoodiehq/hoodie-plugin-shares). 
+
 > Make selected objects publically accessible via hoodie.global store methods.
 
 ## Installation
