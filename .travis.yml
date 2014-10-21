@@ -1,19 +1,20 @@
 language: node_js
 node_js:
-  - "0.10"
+- '0.10'
 before_script:
-  - npm install -g hoodie-cli
-  - npm install -g casperjs
-  - npm install -g grunt-cli
+- npm install -g hoodie-cli
+- npm install -g casperjs
+- npm install -g grunt-cli
 services:
-  - couchdb
+- couchdb
 notifications:
   irc:
     channels:
-      - "irc.freenode.net#hoodie"
+    - irc.freenode.net#hoodie
     use_notice: false
     skip_join: true
-
+  slack:
+    secure: bNJBjjkH2aEIM7zNL4dWgSqamNQd8qHtbJq5lKFNMSPZUL5R9oZKEdstNOKfz/kgnqR5437b+pgN2rV9KgJyLP4lCaej0afokN2dzC/OgXtwO8paD1u/vF4OUCNxtqAc2d46rOkfSGl3QD7a+5Tvli4Fqm5tDH3PLkoJAPRjVEE=
 sudo: false
 cache:
   directories:
