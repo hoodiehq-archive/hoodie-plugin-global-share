@@ -211,7 +211,7 @@ exports.setupUserToPublic = function (user, dbname, hoodie, callback) {
 // when a user doc changes, check if we need to setup replication for it
 exports.handleChange = function (doc, dbname, hoodie, callback) {
 
-  if (_.contains(doc.roles, 'confirmed') && doc.database) {
+  if (_.contains(doc.roles, 'confirmed') && doc.type != 'user_anonymous' && doc.database) {
 
     if (!doc.globalShares) {
       exports.setupUserToPublic(doc, dbname, hoodie, function (err) {
